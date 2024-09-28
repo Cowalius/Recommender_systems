@@ -1,3 +1,4 @@
+Cython
 streamlit
 numpy
 pandas
