@@ -7,7 +7,7 @@ import csv
 from datetime import datetime
 
 #TMDB API key
-API_KEY = '75c2e91b432df43287a4b58ef4337193'
+API_KEY = st.secrets["API_KEY"]
 
 # Function to fetch the movie poster URL and homepage URL from TMDB by TMDB ID
 def get_movie_details_by_id(tmdb_id):
