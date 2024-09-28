@@ -1,7 +1,7 @@
 Cython
 streamlit
-numpy
+numpy<2.0
 pandas
-scikit-surprise
+scikit-surprise==1.1.4
 requests
 surprise
