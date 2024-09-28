@@ -28,7 +28,7 @@ st.title('Movie Recommender System')
 # Load data and cache it
 @st.cache_data
 def load_data():
-    df = pd.read_csv('ratings.csv')  
+    df = pd.read_csv('ratings.csv')
     df['movieId'] = df['movieId'].astype(int)
     return df
 
@@ -103,7 +103,7 @@ with st.sidebar.expander("📚 Resources that will help you develop your underst
 # Video link
 with st.sidebar.expander("🎬 How Recommendation Systems Works"):
     st.write("[A very good video explaining the logic behind Recommendation Systems](https://www.youtube.com/watch?v=n3RKsY2H-NE).")
-
+    
 # Movie selection and rating input
 st.write('Rate some movies to get recommendations!')
 
@@ -183,15 +183,21 @@ if st.session_state.get("user_ratings"):
     if 'worst_svd_offset' not in st.session_state:
         st.session_state['worst_svd_offset'] = 0
 
-    def display_recommendations(recommendations, offset, limit):
+    def display_recommendations(recommendations, offset, limit, algorithm):
         for movie_id, predicted_rating in recommendations[offset:offset + limit]:
             movie_data = df[df['movieId'] == movie_id].iloc[0]
             movie_title = movie_data['title']
             tmdb_id = movie_data['tmdbId']
             poster_url, homepage = get_movie_details_by_id(tmdb_id)
-            likelihood_percentage = (predicted_rating / 5) * 100
-            st.image(poster_url if poster_url else "https://via.placeholder.com/100x150?text=No+Image", width=100)
-            st.markdown(f"[**{movie_title}** - {likelihood_percentage:.2f}% chance you will like it!]({homepage})")
+
+            # Display percentage chance only for SVD and worst SVD
+            if algorithm == 'SVD' or algorithm == 'Worst SVD':
+                likelihood_percentage = (predicted_rating / 5) * 100
+                st.image(poster_url if poster_url else "https://via.placeholder.com/100x150?text=No+Image", width=100)
+                st.markdown(f"[**{movie_title}** - {likelihood_percentage:.2f}% chance you will like it!]({homepage})")
+            else:
+                st.image(poster_url if poster_url else "https://via.placeholder.com/100x150?text=No+Image", width=100)
+                st.markdown(f"[**{movie_title}**]({homepage})")
 
     # Create separate tabs for each algorithm and the worst SVD recommendations
     tab1, tab2, tab3, tab4 = st.tabs(["SVD Recommendations", "KNN Recommendations", "NMF Recommendations", "Worst SVD Recommendations"])
@@ -199,35 +205,35 @@ if st.session_state.get("user_ratings"):
     # SVD Recommendations Tab with pagination
     with tab1:
         st.write("**SVD Algorithm**: Recommendations based on your ratings.")
-        display_recommendations(predicted_ratings_svd, st.session_state['svd_offset'], items_per_page)
+        display_recommendations(predicted_ratings_svd, st.session_state['svd_offset'], items_per_page, algorithm='SVD')
         if st.button('Display more SVD recommendations'):
             st.session_state['svd_offset'] += items_per_page
-            display_recommendations(predicted_ratings_svd, st.session_state['svd_offset'], items_per_page)
+            display_recommendations(predicted_ratings_svd, st.session_state['svd_offset'], items_per_page, algorithm='SVD')
 
     # KNN Recommendations Tab with pagination
     with tab2:
         st.write("**KNN Algorithm**: Recommendations based on movie similarities.")
-        display_recommendations(predicted_ratings_knn, st.session_state['knn_offset'], items_per_page)
+        display_recommendations(predicted_ratings_knn, st.session_state['knn_offset'], items_per_page, algorithm='KNN')
         if st.button('Display more KNN recommendations'):
             st.session_state['knn_offset'] += items_per_page
-            display_recommendations(predicted_ratings_knn, st.session_state['knn_offset'], items_per_page)
+            display_recommendations(predicted_ratings_knn, st.session_state['knn_offset'], items_per_page, algorithm='KNN')
 
     # NMF Recommendations Tab with pagination
     with tab3:
         st.write("**NMF Algorithm**: Recommendations based on latent features.")
-        display_recommendations(predicted_ratings_nmf, st.session_state['nmf_offset'], items_per_page)
+        display_recommendations(predicted_ratings_nmf, st.session_state['nmf_offset'], items_per_page, algorithm='NMF')
         if st.button('Display more NMF recommendations'):
             st.session_state['nmf_offset'] += items_per_page
-            display_recommendations(predicted_ratings_nmf, st.session_state['nmf_offset'], items_per_page)
+            display_recommendations(predicted_ratings_nmf, st.session_state['nmf_offset'], items_per_page, algorithm='NMF')
 
     # Worst SVD Recommendations Tab with pagination
     with tab4:
         st.write("**Worst Recommendations (SVD)**: Movies you are least likely to enjoy.")
         predicted_ratings_svd.sort(key=lambda x: x[1])  # Sort by ascending rating to get the worst
-        display_recommendations(predicted_ratings_svd, st.session_state['worst_svd_offset'], items_per_page)
+        display_recommendations(predicted_ratings_svd, st.session_state['worst_svd_offset'], items_per_page, algorithm='Worst SVD')
         if st.button('Display more Worst SVD recommendations'):
             st.session_state['worst_svd_offset'] += items_per_page
-            display_recommendations(predicted_ratings_svd, st.session_state['worst_svd_offset'], items_per_page)
+            display_recommendations(predicted_ratings_svd, st.session_state['worst_svd_offset'], items_per_page, algorithm='Worst SVD')
 
 else:
     st.write('Rate some movies to get recommendations!')
